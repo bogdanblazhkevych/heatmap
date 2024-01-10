@@ -1,14 +1,36 @@
 'use client'
+import { useEffect, useState } from 'react'
 import styles from './page.module.css'
+import React from 'react'
 
-export default function Home () {
+interface MouseCordinatesInterface {
+  x: number,
+  y: number
+}
 
-  let sessionData:{
-    x: number,
-    y: number
-  }[] = []
+interface SessionInterface {
+  sessionName: string,
+  mouseMoveData: MouseCordinatesInterface[],
+  mouseDownData: MouseCordinatesInterface[]
+}
 
-  function handleMouseMove (e: MouseEvent) {
+interface SessionsInterface {
+  [key: string]: SessionInterface
+}
+
+export default function Home() {
+
+  const [sessions, setSessions] = useState<SessionsInterface>({})
+
+  const [currentSession, setCurrentSession] = useState<SessionInterface>()
+
+  const [selectedSessions, setSelectedSessions] = useState<string[]>()
+
+  useEffect(() => {
+    mapSelected()
+  }, [selectedSessions])
+
+  const handleMouseMove = React.useCallback((e: MouseEvent) => {
     console.log("collecting mouse data....")
     let xCord = e.clientX
     let yCord = e.clientY
@@ -16,32 +38,103 @@ export default function Home () {
       x: xCord,
       y: yCord
     }
-    sessionData.push(node)
-  }
+    // sessionData.push(node)
+    setCurrentSession((prevValue) => {
+      prevValue?.mouseMoveData.push(node)
+      return prevValue
+    })
+  }, [])
 
-  function handleStart () {
+  const handleMouseDown = React.useCallback((e: MouseEvent) => {
+    let xCord = e.clientX
+    let yCord = e.clientY
+    let node = {
+      x: xCord,
+      y: yCord,
+      click: true
+    }
+    // sessionData.push(node)
+    setCurrentSession((prevValue) => {
+      prevValue?.mouseDownData.push(node)
+      return prevValue
+    })
+  }, [])
+
+  function handleStart() {
+    //create new session
+    //collect session data
     window.addEventListener("mousemove", handleMouseMove)
+    window.addEventListener("mousedown", handleMouseDown)
+    createNewSession();
   }
 
-  function handleStop () {
-    console.log("stoped collecting mouse data")
-    console.log(sessionData)
+  function handleStop() {
+    console.log(currentSession)
+    setSessions((prevValue) => {
+      if (!currentSession) return prevValue
+      prevValue[currentSession.sessionName] = currentSession
+      return prevValue
+    })
+    setCurrentSession(undefined);
     window.removeEventListener("mousemove", handleMouseMove)
-    mapMouseMovement()
+    window.removeEventListener("mousedown", handleMouseDown)
+    console.log("stoped collecting mouse data")
+    console.log(sessions)
+
+    // mapMouseMovement()
   }
 
-  function mapMouseMovement () {
+  function createNewSession() {
+    setCurrentSession({
+      sessionName: `session${Object.keys(sessions ?? {}).length}`,
+      mouseMoveData: [],
+      mouseDownData: []
+    })
+    return
+  }
+
+  const mapSelected = () => {
     let canvas = document.getElementById('canvas') as HTMLCanvasElement
     canvas.height = window.innerHeight
     canvas.width = window.innerWidth
     if (!canvas) return
     let context = canvas.getContext('2d')
-    if (!context) return
+    if (!sessions) return
 
-    context.fillStyle = "blue"
-    sessionData.forEach(node => {
-      context?.fillRect(node.x, node.y, 1, 1)
+    selectedSessions?.forEach((name) => {
+      sessions[name].mouseDownData.forEach((node) => {
+        if (!context) return
+        context.fillStyle = "green"
+        context.fillRect(node.x, node.y, 3, 3)
+      })
+
+      sessions[name].mouseMoveData.forEach((node) => {
+        if (!context) return
+        context.fillStyle = "blue"
+        context.fillRect(node.x, node.y, 1, 1)
+      })
     })
+  }
+
+  function mapMouseMovement() {
+    let canvas = document.getElementById('canvas') as HTMLCanvasElement
+    canvas.height = window.innerHeight
+    canvas.width = window.innerWidth
+    if (!canvas) return
+    let context = canvas.getContext('2d')
+    if (!sessions) return
+    if (!sessions[Object.keys(sessions)[0]]) return
+    sessions[Object.keys(sessions)[0]].mouseMoveData.forEach(node => {
+      if (!context) return
+      context.fillStyle = "green"
+      context.fillRect(node.x, node.y, 1, 1)
+    })
+  }
+
+  const handleSessionSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const value = e.target.value
+    const _selectedSessions = value.split(',')
+    setSelectedSessions(_selectedSessions)
   }
 
   return (
@@ -50,8 +143,17 @@ export default function Home () {
       <div className={styles.buttonwrapper}>
         <button onClick={handleStart}>start</button>
         <button onClick={handleStop}>stop</button>
+        <select onChange={handleSessionSelectChange}>
+          <option value={Object.keys(sessions)}>All</option>
+          {Object.keys(sessions).map((session, index) => {
+            return (
+              <>
+                <option value={[session]}>{session}</option>
+              </>
+            )
+          })}
+        </select>
       </div>
-
       <canvas id="canvas" className={styles.mapcanvas}></canvas>
 
     </main>
