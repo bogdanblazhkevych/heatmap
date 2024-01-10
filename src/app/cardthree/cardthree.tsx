@@ -1,3 +1,6 @@
+// 'use client'
+
+// import { useRef } from 'react';
 import styles from './styles.module.css'
 import { MdOutlineArrowOutward } from "react-icons/md";
 
@@ -5,17 +8,19 @@ interface CardThreePropsInterface {
     title: string,
     paragraph: string,
     svg?: JSX.Element,
-    clickable: boolean
+    clickable: boolean,
+    id: string
 }
 
 export default function CardThree(props: CardThreePropsInterface) {
-    const { title, paragraph, svg, clickable } = props
+    const { title, paragraph, svg, clickable, id } = props
+    // const testref = useRef<HTMLDivElement>(null)
     return (
-        <div className={styles.cardwrapper} data-clickable={clickable}>
+        <div id={id} className={styles.cardwrapper} data-clickable={clickable}>
             {svg}
-            <h1 className={styles.cardh1}>{title}</h1>
-            <p className={styles.cardp}>{paragraph}</p>
-            <div className={styles.cardarrow}>
+            <h1 id={`${id}h1`} className={styles.cardh1}>{title}</h1>
+            <p id={`${id}p`} className={styles.cardp}>{paragraph}</p>
+            <div id={`${id}arrow`} className={styles.cardarrow}>
                 <MdOutlineArrowOutward />
             </div>
         </div>

@@ -8,14 +8,24 @@ interface MouseCordinatesInterface {
   y: number
 }
 
-interface MouseMoveDataInterface extends MouseCordinatesInterface {
+// interface MouseMoveDataInterface extends MouseCordinatesInterface {
+//   element: HTMLElement
+// }
+
+interface ElementNodeInterface {
+  targetCount: number,
   element: HTMLElement
+}
+
+interface ElementDataInterface {
+  [id: string]: ElementNodeInterface
 }
 
 interface SessionInterface {
   sessionName: string,
-  mouseMoveData: MouseMoveDataInterface[],
-  mouseDownData: MouseCordinatesInterface[]
+  mouseMoveData: MouseCordinatesInterface[],
+  mouseDownData: MouseCordinatesInterface[],
+  elementData: ElementDataInterface
 }
 
 interface SessionsInterface {
@@ -43,10 +53,22 @@ export default function DataCollector() {
     let node = {
       x: xCord,
       y: yCord,
-      element: e.target as HTMLElement
+      // element: e.target as HTMLElement
     }
+    let element = e.target as HTMLElement
     setCurrentSession((prevValue) => {
+      if (!prevValue) return
       prevValue?.mouseMoveData.push(node)
+      if (element.id) {
+        if (prevValue.elementData[element.id]) {
+          prevValue.elementData[element.id].targetCount ++
+        } else {
+          prevValue.elementData[element.id] = {
+            targetCount: 0,
+            element: element
+          }
+        }
+      }
       return prevValue
     })
   }, [])
@@ -59,11 +81,13 @@ export default function DataCollector() {
       y: yCord,
       click: true
     }
+    // let element = e.target as HTMLElement
     // sessionData.push(node)
     setCurrentSession((prevValue) => {
       prevValue?.mouseDownData.push(node)
       return prevValue
     })
+
   }, [])
 
   function handleStart() {
@@ -95,7 +119,8 @@ export default function DataCollector() {
     setCurrentSession({
       sessionName: `session${Object.keys(sessions ?? {}).length}`,
       mouseMoveData: [],
-      mouseDownData: []
+      mouseDownData: [],
+      elementData: {}
     })
     return
   }
@@ -115,16 +140,35 @@ export default function DataCollector() {
 
       sessions[name].mouseMoveData.forEach((node) => {
         drawSquare(context, "blue", node.x, node.y, 1)
-        drawOutlineFromElement(context, "yellow", node.element)
+        // drawOutlineFromElement(context, "yellow", node.element)
+      })
+
+      const highestTargetCount = getHighestTargetCount(sessions[name].elementData)
+
+      Object.keys(sessions[name].elementData).forEach((key) => {
+        const node = sessions[name].elementData[key]
+        const appature = node.targetCount / highestTargetCount
+        const color = `rgba(251, 255, 0, ${appature})`
+        drawOutlineFromElement(context, color, node.element, 2)
       })
     })
   }
 
-  const drawOutlineFromElement = (ctx: CanvasRenderingContext2D | null, color: string, element: HTMLElement) => {
+  const getHighestTargetCount = (elementData: ElementDataInterface) => {
+    let currentCount = 0;
+    Object.keys(elementData).forEach((key) => {
+      if (elementData[key].targetCount > currentCount) {
+        currentCount = elementData[key].targetCount
+      }
+    })
+    return currentCount
+  }
+
+  const drawOutlineFromElement = (ctx: CanvasRenderingContext2D | null, color: string, element: HTMLElement, width?: number,) => {
     if (!ctx) return
     const boundingBox = element.getBoundingClientRect();
-    ctx.strokeStyle = 'red'; // Set the outline color
-    ctx.lineWidth = 2;      // Set the outline width
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2;
     ctx.strokeRect(boundingBox.x, boundingBox.y, boundingBox.width, boundingBox.height);
   }
 
