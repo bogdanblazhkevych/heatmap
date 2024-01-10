@@ -8,9 +8,13 @@ interface MouseCordinatesInterface {
   y: number
 }
 
+interface MouseMoveDataInterface extends MouseCordinatesInterface {
+  element: HTMLElement
+}
+
 interface SessionInterface {
   sessionName: string,
-  mouseMoveData: MouseCordinatesInterface[],
+  mouseMoveData: MouseMoveDataInterface[],
   mouseDownData: MouseCordinatesInterface[]
 }
 
@@ -30,15 +34,17 @@ export default function DataCollector() {
     mapSelected()
   }, [selectedSessions])
 
+  // let test: HTMLElement[] = []
+
   const handleMouseMove = React.useCallback((e: MouseEvent) => {
     console.log("collecting mouse data....")
     let xCord = e.clientX
     let yCord = e.clientY
     let node = {
       x: xCord,
-      y: yCord
+      y: yCord,
+      element: e.target as HTMLElement
     }
-    // sessionData.push(node)
     setCurrentSession((prevValue) => {
       prevValue?.mouseMoveData.push(node)
       return prevValue
@@ -80,6 +86,7 @@ export default function DataCollector() {
     window.removeEventListener("mousedown", handleMouseDown)
     console.log("stoped collecting mouse data")
     console.log(sessions)
+    // console.log(test)
 
     // mapMouseMovement()
   }
@@ -108,8 +115,17 @@ export default function DataCollector() {
 
       sessions[name].mouseMoveData.forEach((node) => {
         drawSquare(context, "blue", node.x, node.y, 1)
+        drawOutlineFromElement(context, "yellow", node.element)
       })
     })
+  }
+
+  const drawOutlineFromElement = (ctx: CanvasRenderingContext2D | null, color: string, element: HTMLElement) => {
+    if (!ctx) return
+    const boundingBox = element.getBoundingClientRect();
+    ctx.strokeStyle = 'red'; // Set the outline color
+    ctx.lineWidth = 2;      // Set the outline width
+    ctx.strokeRect(boundingBox.x, boundingBox.y, boundingBox.width, boundingBox.height);
   }
 
   const drawSquare = (ctx: CanvasRenderingContext2D | null, color: string, squareX: number, squareY: number, size: number) => {
@@ -135,7 +151,7 @@ export default function DataCollector() {
                 {Object.keys(sessions).map((session, index) => {
                     return (
                     <>
-                        <option value={[session]}>{session}</option>
+                        <option key={index} value={[session]}>{session}</option>
                     </>
                     )
                 })}
