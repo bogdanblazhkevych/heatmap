@@ -8,10 +8,6 @@ interface MouseCordinatesInterface {
   y: number
 }
 
-// interface MouseMoveDataInterface extends MouseCordinatesInterface {
-//   element: HTMLElement
-// }
-
 interface ElementNodeInterface {
   targetCount: number,
   element: HTMLElement
@@ -108,11 +104,6 @@ export default function DataCollector() {
     setCurrentSession(undefined);
     window.removeEventListener("mousemove", handleMouseMove)
     window.removeEventListener("mousedown", handleMouseDown)
-    console.log("stoped collecting mouse data")
-    console.log(sessions)
-    // console.log(test)
-
-    // mapMouseMovement()
   }
 
   function createNewSession() {
@@ -135,12 +126,11 @@ export default function DataCollector() {
 
     selectedSessions?.forEach((name) => {
       sessions[name].mouseDownData.forEach((node) => {
-        drawSquare(context, "green", node.x, node.y, 3)
+        drawSquare(context, "green", node.x, node.y, 10)
       })
 
       sessions[name].mouseMoveData.forEach((node) => {
-        drawSquare(context, "blue", node.x, node.y, 1)
-        // drawOutlineFromElement(context, "yellow", node.element)
+        drawSquare(context, "blue", node.x, node.y, 4)
       })
 
       const highestTargetCount = getHighestTargetCount(sessions[name].elementData)
