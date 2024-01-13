@@ -1,0 +1,61 @@
+.cardwrapper {
+    /* border: 1px solid red; */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 16px;
+    gap: 16px;
+    border: 2px solid #323232;
+    background-color: #0e0e0e;
+    border-radius: 22px;
+    position: relative;
+    /* cursor: pointer; */
+    transition: all 0.2s ease-in-out;
+}
+
+.cardh1 {
+    color: white;
+    font-size: clamp(20px, 2vw, 24px);
+    font-weight: 700;
+    line-height: 1.15;
+    height: auto;
+    width: fit-content;
+}
+
+.cardp {
+    font-weight: 500;
+    line-height: 1.6;
+    color: #696969ff;
+    font-size: clamp(16px, 1vw, 18px);
+    height: auto;
+}
+
+.cardwrapper[data-clickable="true"]:hover{
+    background-color: hsl(0 0% 7% / 1);
+    cursor: pointer;
+}
+
+.cardarrow{
+    /* border: 1px solid red; */
+    width: fit-content;
+    position: absolute;
+    right: 16px;
+    display: grid;
+    place-items: center;
+    font-size: 40px;
+    color: #323232;
+    opacity: 0%;
+    transform-origin: 0% 100%;
+    transform: scale(0.8);
+    transition: all 0.15s ease-in-out;
+}
+
+.cardwrapper[data-clickable="true"]:hover .cardarrow{
+    opacity: 100%;
+    transform: scale(1);
+    color: blue;
+}
+
+.cardwrapper[data-clickable="true"]:hover g path{
+    stroke-dashoffset: 0 !important;
+}
